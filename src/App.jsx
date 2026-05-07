@@ -133,12 +133,13 @@ const Toast = ({ msg, type, onClose }) => {
 const Modal = ({ title, onClose, children }) => (
   <div style={{
     position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+    padding: '20px', overflowY: 'auto'
   }} onClick={e => e.target === e.currentTarget && onClose()}>
     <div style={{
       background: 'var(--bg2)', border: '1px solid var(--border2)',
       borderRadius: 16, padding: 28, width: '100%', maxWidth: 580,
-      maxHeight: '85vh', overflowY: 'auto', animation: 'fadeIn 0.2s ease'
+      marginTop: 20, marginBottom: 20, animation: 'fadeIn 0.2s ease'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700 }}>{title}</h2>
@@ -261,6 +262,102 @@ const Table = ({ columns, data, onEdit, onDelete }) => (
   </div>
 );
 
+
+// ============================================================
+// GRÁFICO DE VIATURAS
+// ============================================================
+const COR_SITUACAO = {
+  operacional:          '#10b981',
+  em_manutencao:        '#06b6d4',
+  inservivel:           '#ef4444',
+  descarga:             '#f59e0b',
+  aguardando_liberacao: '#8b5cf6',
+  reserva:              '#8892a4',
+};
+
+const LABEL_SITUACAO = {
+  operacional:          'Operacional',
+  em_manutencao:        'Manutenção',
+  inservivel:           'Inservível',
+  descarga:             'Descarga',
+  aguardando_liberacao: 'Ag. Liberação',
+  reserva:              'Reserva',
+};
+
+const GraficoViaturas = ({ data }) => {
+  const total = data.reduce((a, b) => a + parseInt(b.total), 0);
+  if (total === 0) return null;
+
+  // Calcular fatias do gráfico de pizza SVG
+  const fatias = [];
+  let angulo = -90;
+  for (const item of data) {
+    const pct = parseInt(item.total) / total;
+    const inicio = angulo;
+    angulo += pct * 360;
+    fatias.push({ ...item, pct, inicio, fim: angulo });
+  }
+
+  const polarToCartesian = (cx, cy, r, angle) => {
+    const rad = (angle * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  };
+
+  const describeArc = (cx, cy, r, startAngle, endAngle) => {
+    const start = polarToCartesian(cx, cy, r, endAngle);
+    const end   = polarToCartesian(cx, cy, r, startAngle);
+    const large = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${large} 0 ${end.x} ${end.y} Z`;
+  };
+
+  return (
+    <div style={{
+      background: 'var(--bg2)', border: '1px solid var(--border)',
+      borderRadius: 14, padding: 20
+    }}>
+      <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+        Situação das Viaturas
+      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+        {/* Pizza */}
+        <svg viewBox="0 0 120 120" width={120} height={120} style={{ flexShrink: 0 }}>
+          {fatias.map((f, i) => (
+            <path
+              key={i}
+              d={f.pct === 1 
+                ? `M 60 60 m -50 0 a 50 50 0 1 0 100 0 a 50 50 0 1 0 -100 0`
+                : describeArc(60, 60, 50, f.inicio, f.fim)}
+              fill={COR_SITUACAO[f.situacao] || '#8892a4'}
+              stroke="var(--bg2)"
+              strokeWidth={2}
+            />
+          ))}
+          {/* Buraco central */}
+          <circle cx={60} cy={60} r={28} fill="var(--bg2)" />
+          <text x={60} y={56} textAnchor="middle" fill="var(--text)" fontSize={14} fontWeight={700}>{total}</text>
+          <text x={60} y={70} textAnchor="middle" fill="var(--text2)" fontSize={8}>viaturas</text>
+        </svg>
+
+        {/* Legenda */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+          {data.map(item => (
+            <div key={item.situacao} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: COR_SITUACAO[item.situacao] || '#8892a4', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: 'var(--text2)' }}>{LABEL_SITUACAO[item.situacao] || item.situacao}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700 }}>{item.total}</span>
+                <span style={{ fontSize: 11, color: 'var(--text3)' }}>{Math.round(parseInt(item.total)/total*100)}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ============================================================
 // ABA: RESUMO
 // ============================================================
@@ -269,14 +366,15 @@ const TabResumo = ({ resumo }) => {
   const totalItens = resumo.itens_patrimoniais.reduce((a, b) => a + parseInt(b.total), 0);
   const totalArmas = resumo.armas.reduce((a, b) => a + parseInt(b.total), 0);
   const totalVtrs  = resumo.viaturas.reduce((a, b) => a + parseInt(b.total), 0);
-  const valorTotal = (parseFloat(resumo.valor_total_itens) + parseFloat(resumo.valor_total_armas)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const valorVtrs  = parseFloat(resumo.valor_total_viaturas || 0);
+  const valorTotal = (parseFloat(resumo.valor_total_itens) + parseFloat(resumo.valor_total_armas) + valorVtrs).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
         <StatCard label="Itens Patrimoniais" value={totalItens} sub={`R$ ${parseFloat(resumo.valor_total_itens).toLocaleString('pt-BR')}`} color="var(--accent)" icon="📦" />
         <StatCard label="Armamento" value={totalArmas} sub={`R$ ${parseFloat(resumo.valor_total_armas).toLocaleString('pt-BR')}`} color="var(--red)" icon="🔫" />
-        <StatCard label="Viaturas" value={totalVtrs} sub="Frota ativa" color="var(--green)" icon="🚔" />
+        <StatCard label="Viaturas" value={totalVtrs} sub={`R$ ${valorVtrs.toLocaleString('pt-BR')}`} color="var(--green)" icon="🚔" />
         <StatCard label="Patrimônio Total" value={valorTotal} sub="Valor consolidado" color="var(--yellow)" icon="💰" />
       </div>
 
@@ -284,7 +382,6 @@ const TabResumo = ({ resumo }) => {
         {[
           { title: 'Situação dos Itens', data: resumo.itens_patrimoniais },
           { title: 'Situação das Armas', data: resumo.armas },
-          { title: 'Situação das Viaturas', data: resumo.viaturas },
         ].map(({ title, data }) => (
           <div key={title} style={{
             background: 'var(--bg2)', border: '1px solid var(--border)',
@@ -301,6 +398,9 @@ const TabResumo = ({ resumo }) => {
             </div>
           </div>
         ))}
+
+        {/* GRÁFICO DE VIATURAS */}
+        <GraficoViaturas data={resumo.viaturas} />
       </div>
     </div>
   );
