@@ -108,8 +108,8 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
-      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 1000, marginTop: 20 }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
+      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 1200, marginTop: 20, marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Fotos — Registro #{assuncaoId}</h3>
           <button onClick={onFechar} style={{ background: 'var(--border)', color: 'var(--text2)', width: 32, height: 32, borderRadius: 8, fontSize: 18, border: 'none', cursor: 'pointer' }}>×</button>
@@ -122,7 +122,7 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
             {fotos.map(f => (
               <div key={f.id} style={{ background: 'var(--bg3)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <img src={f.foto_url} alt={f.tipo_foto} onClick={() => setFotoGrande(f.foto_url)}
-                  style={{ width: '100%', height: 220, objectFit: 'cover', cursor: 'pointer' }} />
+                  style={{ width: '100%', height: 320, objectFit: 'cover', cursor: 'pointer', borderRadius: 8 }} />
                 <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{LABEL_TIPO[f.tipo_foto] || f.tipo_foto}</div>
