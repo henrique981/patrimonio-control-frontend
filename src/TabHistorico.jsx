@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 const BASE = 'https://backend-production-32053.up.railway.app';
 
@@ -107,8 +108,8 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
     setExcluindo(null);
   };
 
-  return (
-    <div style={{ position: 'fixed', top: 60, left: 0, right: 0, bottom: 0, background: '#000000ee', zIndex: 9999, overflowY: 'auto', padding: 20 }}>
+  return createPortal(
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#000000ee', zIndex: 99999, overflowY: 'auto', padding: 20 }}>
       <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 1400, margin: '0 auto 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Fotos — Registro #{assuncaoId}</h3>
@@ -141,11 +142,12 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
 
       {/* Foto em tela cheia */}
       {fotoGrande && (
-        <div onClick={() => setFotoGrande(null)} style={{ position: 'fixed', inset: 0, background: '#000000ee', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
+        <div onClick={() => setFotoGrande(null)} style={{ position: 'fixed', inset: 0, background: '#000000ee', zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
           <img src={fotoGrande} alt="foto" style={{ maxWidth: '95vw', maxHeight: '95vh', borderRadius: 8 }} />
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 };
 
