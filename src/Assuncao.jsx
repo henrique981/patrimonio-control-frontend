@@ -588,7 +588,11 @@ export default function Assuncao({ prefixo }) {
       <Header viatura={viatura} />
       <div style={{ padding: '20px 16px', maxWidth: 480, margin: '0 auto' }}>
         {tela === 'identificacao' && (
-          <TelaIdentificacao prefixo={prefixo} kmAtual={kmAtual} onConfirmar={(p) => { setPolicial(p); carregar(); }} />
+          <TelaIdentificacao prefixo={prefixo} kmAtual={kmAtual} onConfirmar={(p) => {
+            setPolicial(p);
+            setAssuncaoAberta({ ...p, id: p.assuncao_id, km_saida: p.km, policial_re: p.re, policial_nome: p.nome, data_hora_saida: new Date().toISOString() });
+            setTela('em_servico');
+          }} />
         )}
         {tela === 'em_servico' && assuncaoAberta && (
           <TelaEmServico prefixo={prefixo} assuncao={assuncaoAberta} onRetorno={() => setTela('retorno')} />

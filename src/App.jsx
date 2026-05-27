@@ -3,6 +3,12 @@ import api from './api';
 import TabHistorico from './TabHistorico';
 import Login from './Login';
 import TabUsuarios from './TabUsuarios';
+import TabLog from './TabLog';
+import TabConferencia from './TabConferencia';
+import TabManutencao from './TabManutencao';
+import TabRelatorioKM from './TabRelatorioKM';
+import TabQRCode from './TabQRCode';
+import TabCombustivel from './TabCombustivel';
 
 const GlobalStyle = () => (
   <style>{`
@@ -248,7 +254,7 @@ const TabResumo = ({ resumo }) => {
 };
 
 // TAB ITENS
-const TabItens = ({ showToast }) => {
+const TabItens = ({ showToast, registrarLog }) => {
   const [itens, setItens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -281,8 +287,17 @@ const TabItens = ({ showToast }) => {
     setSaving(true);
     try {
       let res;
-      if (modal === 'add') res = await api.post('/patrimonio/itens', form);
-      else res = await api.put(`/patrimonio/itens/${selected.patrimonio}`, form);
+      if (modal === 'add') {
+        res = await api.post('/patrimonio/itens', form);
+      } else {
+        res = await api.put(`/patrimonio/itens/${selected.patrimonio}`, form);
+        if (res.ok && registrarLog) {
+          const alteracoes = Object.keys(form)
+            .filter(k => form[k] !== selected[k] && form[k] !== undefined)
+            .map(k => ({ campo: k, anterior: String(selected[k] || ''), novo: String(form[k] || '') }));
+          registrarLog('itens_patrimoniais', selected.patrimonio, selected.nome_material, alteracoes);
+        }
+      }
       if (res.ok) { showToast(modal === 'add' ? 'Item inserido!' : 'Item atualizado!', 'success'); setModal(null); load(); }
       else showToast(res.erro || 'Erro ao salvar', 'error');
     } catch { showToast('Erro de conexao', 'error'); }
@@ -366,7 +381,7 @@ const TabItens = ({ showToast }) => {
 };
 
 // TAB ARMAS
-const TabArmas = ({ showToast }) => {
+const TabArmas = ({ showToast, registrarLog }) => {
   const [armas, setArmas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -397,8 +412,17 @@ const TabArmas = ({ showToast }) => {
     setSaving(true);
     try {
       let res;
-      if (modal === 'add') res = await api.post('/patrimonio/armas', form);
-      else res = await api.put(`/patrimonio/armas/${selected.patrimonio}`, form);
+      if (modal === 'add') {
+        res = await api.post('/patrimonio/armas', form);
+      } else {
+        res = await api.put(`/patrimonio/armas/${selected.patrimonio}`, form);
+        if (res.ok && registrarLog) {
+          const alteracoes = Object.keys(form)
+            .filter(k => form[k] !== selected[k] && form[k] !== undefined)
+            .map(k => ({ campo: k, anterior: String(selected[k] || ''), novo: String(form[k] || '') }));
+          registrarLog('armas', selected.patrimonio, selected.nome_material, alteracoes);
+        }
+      }
       if (res.ok) { showToast(modal === 'add' ? 'Arma inserida!' : 'Arma atualizada!', 'success'); setModal(null); load(); }
       else showToast(res.erro || 'Erro ao salvar', 'error');
     } catch { showToast('Erro de conexao', 'error'); }
@@ -475,7 +499,7 @@ const TabArmas = ({ showToast }) => {
 };
 
 // TAB VIATURAS
-const TabViaturas = ({ showToast }) => {
+const TabViaturas = ({ showToast, registrarLog }) => {
   const [viaturas, setViaturas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtroSituacao, setFiltroSituacao] = useState('');
@@ -504,8 +528,17 @@ const TabViaturas = ({ showToast }) => {
     setSaving(true);
     try {
       let res;
-      if (modal === 'add') res = await api.post('/patrimonio/viaturas', form);
-      else res = await api.put(`/patrimonio/viaturas/${selected.prefixo}`, form);
+      if (modal === 'add') {
+        res = await api.post('/patrimonio/viaturas', form);
+      } else {
+        res = await api.put(`/patrimonio/viaturas/${selected.prefixo}`, form);
+        if (res.ok && registrarLog) {
+          const alteracoes = Object.keys(form)
+            .filter(k => form[k] !== selected[k] && form[k] !== undefined)
+            .map(k => ({ campo: k, anterior: String(selected[k] || ''), novo: String(form[k] || '') }));
+          registrarLog('viaturas', selected.prefixo, `${selected.marca} ${selected.modelo}`, alteracoes);
+        }
+      }
       if (res.ok) { showToast(modal === 'add' ? 'Viatura inserida!' : 'Viatura atualizada!', 'success'); setModal(null); load(); }
       else showToast(res.erro || 'Erro ao salvar', 'error');
     } catch { showToast('Erro de conexao', 'error'); }
@@ -614,6 +647,21 @@ export default function App() {
     setUsuario(null);
   };
 
+  const registrarLog = async (tabela, registro_id, registro_desc, alteracoes) => {
+    if (!alteracoes || alteracoes.length === 0) return;
+    try {
+      await fetch('https://backend-production-32053.up.railway.app/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tabela, registro_id, registro_desc, alteracoes,
+          usuario_re: usuario?.re || 'desconhecido',
+          usuario_nome: usuario?.nome || 'desconhecido'
+        })
+      });
+    } catch {}
+  };
+
   if (!usuario) return <Login onLogin={handleLogin} />;
 
   const abas = [
@@ -623,6 +671,12 @@ export default function App() {
     { id: 'viaturas',  label: 'Viaturas' },
     { id: 'historico', label: 'Historico VTR' },
     ...(usuario?.perfil === 'gestor' ? [{ id: 'usuarios', label: 'Usuarios' }] : []),
+    { id: 'log', label: 'Log Alteracoes' },
+    { id: 'conferencia', label: 'Conferencia' },
+    { id: 'manutencao', label: 'Manutencao VTR' },
+    { id: 'relatorio_km', label: 'Relatorio KM' },
+    { id: 'qrcodes', label: 'QR Codes VTR' },
+    { id: 'combustivel', label: 'Combustivel' },
   ];
 
   return (
@@ -651,11 +705,19 @@ export default function App() {
       <main style={{ padding: '28px 32px', maxWidth: 1400, margin: '0 auto' }}>
         <div className="fade-in" key={aba}>
           {aba === 'resumo'    && <TabResumo resumo={resumo} />}
-          {aba === 'itens'     && <TabItens showToast={showToast} />}
-          {aba === 'armas'     && <TabArmas showToast={showToast} />}
-          {aba === 'viaturas'  && <TabViaturas showToast={showToast} />}
+          {aba === 'itens'     && <TabItens showToast={showToast} registrarLog={registrarLog} />}
+          {aba === 'armas'     && <TabArmas showToast={showToast} registrarLog={registrarLog} />}
+          {aba === 'viaturas'  && <TabViaturas showToast={showToast} registrarLog={registrarLog} />}
           {aba === 'historico' && <TabHistorico showToast={showToast} />}
           {aba === 'usuarios' && <TabUsuarios showToast={showToast} usuarioLogado={usuario} />}
+          {aba === 'log' && <TabLog showToast={showToast} />}
+          {aba === 'conferencia' && <TabConferencia showToast={showToast} usuario={usuario} />}
+          {aba === 'manutencao' && <TabManutencao showToast={showToast} usuario={usuario} />}
+          {aba === 'relatorio_km' && <TabRelatorioKM showToast={showToast} />}
+          {aba === 'qrcodes' && <TabQRCode showToast={showToast} />}
+          {aba === 'combustivel' && <TabCombustivel showToast={showToast} usuario={usuario} />}
+          {aba === 'relatorio_km' && <TabRelatorioKM showToast={showToast} />}
+          {aba === 'qrcodes' && <TabQRCode showToast={showToast} />}
         </div>
       </main>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
