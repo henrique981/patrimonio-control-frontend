@@ -108,7 +108,7 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000, overflowY: 'auto', padding: '20px 0' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#000000cc', zIndex: 9999, overflowY: 'auto', padding: '20px 0' }}>
       <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '95%', maxWidth: 1400, margin: '0 auto 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Fotos — Registro #{assuncaoId}</h3>
