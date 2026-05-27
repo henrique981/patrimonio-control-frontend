@@ -108,8 +108,8 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
-      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '100%', maxWidth: 1200, marginTop: 20, marginBottom: 20 }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#000000cc', zIndex: 1000, overflowY: 'auto', padding: '20px 0' }}>
+      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border2)', borderRadius: 16, padding: 24, width: '95%', maxWidth: 1400, margin: '0 auto 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Fotos — Registro #{assuncaoId}</h3>
           <button onClick={onFechar} style={{ background: 'var(--border)', color: 'var(--text2)', width: 32, height: 32, borderRadius: 8, fontSize: 18, border: 'none', cursor: 'pointer' }}>×</button>
@@ -118,11 +118,11 @@ const ModalFotos = ({ fotos, assuncaoId, onFechar, onExcluir }) => {
         {fotos.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Nenhuma foto registrada</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
             {fotos.map(f => (
               <div key={f.id} style={{ background: 'var(--bg3)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <img src={f.foto_url} alt={f.tipo_foto} onClick={() => setFotoGrande(f.foto_url)}
-                  style={{ width: '100%', height: 320, objectFit: 'cover', cursor: 'pointer', borderRadius: 8 }} />
+                  style={{ width: '100%', height: 'auto', maxHeight: 400, objectFit: 'cover', cursor: 'pointer', display: 'block' }} />
                 <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{LABEL_TIPO[f.tipo_foto] || f.tipo_foto}</div>
